@@ -1,0 +1,1327 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>에코네스트 | K-에코뷰티 크리스마스 환경 퀴즈 뽑기</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Tone.js for interactive booth sound effects -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+  <!-- Google Fonts: Jua (친근하고 둥근 제목용) & Noto Sans KR (가독성 높은 본문용) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Jua&family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet" />
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            display: ['"Jua"', 'sans-serif'],
+            sans: ['"Noto Sans KR"', 'sans-serif'],
+          },
+          colors: {
+            pine: {
+              950: '#061c12',
+              900: '#0b2e1e',
+              800: '#134730',
+              700: '#1b6343',
+            },
+            festive: {
+              red: '#c81e1e',
+              crimson: '#9b1c1c',
+              gold: '#f59e0b',
+              lightgold: '#fde68a',
+            }
+          }
+        }
+      }
+    };
+  </script>
+
+  <style>
+    body {
+      font-family: 'Noto Sans KR', sans-serif;
+      background: radial-gradient(circle at 50% 20%, #154c33 0%, #092418 65%, #04130c 100%);
+      overflow-x: hidden;
+      user-select: none;
+    }
+
+    .font-display {
+      font-family: 'Jua', sans-serif;
+    }
+
+    /* 한국 전통 단청/문살 느낌의 은은한 골드 패턴 테두리 */
+    .k-pattern-border {
+      background-image: repeating-linear-gradient(
+        90deg,
+        rgba(251, 191, 36, 0.35) 0px,
+        rgba(251, 191, 36, 0.35) 12px,
+        transparent 12px,
+        transparent 18px,
+        rgba(220, 38, 38, 0.45) 18px,
+        rgba(220, 38, 38, 0.45) 30px,
+        transparent 30px,
+        transparent 36px
+      );
+    }
+
+    /* 스노우볼 유리 광택 효과 */
+    .glass-globe {
+      background: radial-gradient(
+        circle at 32% 28%,
+        rgba(255, 255, 255, 0.45) 0%,
+        rgba(255, 255, 255, 0.12) 28%,
+        rgba(16, 185, 129, 0.08) 65%,
+        rgba(6, 28, 18, 0.55) 100%
+      );
+      box-shadow:
+        inset -16px -16px 32px rgba(0, 0, 0, 0.45),
+        inset 14px 14px 28px rgba(255, 255, 255, 0.35),
+        0 20px 50px rgba(0, 0, 0, 0.6),
+        0 0 35px rgba(251, 191, 36, 0.25);
+    }
+
+    /* 캡슐 둥실둥실 애니메이션 */
+    @keyframes floatSlow {
+      0%, 100% { transform: translateY(0px) rotate(var(--rot, 0deg)); }
+      50% { transform: translateY(-7px) rotate(calc(var(--rot, 0deg) + 6deg)); }
+    }
+
+    .capsule-idle {
+      animation: floatSlow 3.2s ease-in-out infinite;
+    }
+
+    /* 뽑기 작동 시 격렬하게 섞이는 애니메이션 */
+    @keyframes swirlMix {
+      0%   { transform: translate(0, 0) rotate(0deg) scale(1); }
+      20%  { transform: translate(-22px, -35px) rotate(110deg) scale(1.08); }
+      40%  { transform: translate(26px, -48px) rotate(220deg) scale(0.95); }
+      60%  { transform: translate(-18px, -20px) rotate(310deg) scale(1.06); }
+      80%  { transform: translate(20px, -40px) rotate(410deg) scale(1); }
+      100% { transform: translate(0, 0) rotate(540deg) scale(1); }
+    }
+
+    .capsule-mixing {
+      animation: swirlMix 0.65s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite !important;
+    }
+
+    /* 머신 본체 흔들림 */
+    @keyframes machineShake {
+      0%, 100% { transform: translateX(0) rotate(0deg); }
+      20% { transform: translateX(-5px) rotate(-1.2deg); }
+      40% { transform: translateX(5px) rotate(1.2deg); }
+      60% { transform: translateX(-4px) rotate(-0.8deg); }
+      80% { transform: translateX(4px) rotate(0.8deg); }
+    }
+
+    .machine-shaking {
+      animation: machineShake 0.4s ease-in-out infinite;
+    }
+
+    /* 레버 회전 */
+    @keyframes crankSpin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .crank-spinning {
+      animation: crankSpin 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    /* 캡슐 등장 팝업 */
+    @keyframes popIn {
+      0% { transform: scale(0.2) translateY(60px) rotate(-30deg); opacity: 0; }
+      70% { transform: scale(1.08) translateY(-8px) rotate(6deg); opacity: 1; }
+      100% { transform: scale(1) translateY(0) rotate(0deg); opacity: 1; }
+    }
+
+    .animate-pop-in {
+      animation: popIn 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    }
+
+    /* 반짝이는 전구 효과 */
+    @keyframes twinkle {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.45; transform: scale(0.85); }
+    }
+
+    .bulb-twinkle {
+      animation: twinkle 1.6s ease-in-out infinite;
+    }
+
+    /* 스크롤바 커스텀 */
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: rgba(6, 28, 18, 0.5);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(245, 158, 11, 0.5);
+      border-radius: 9999px;
+    }
+  </style>
+</head>
+<body class="min-h-screen text-white relative flex flex-col justify-between">
+
+  <!-- 배경 눈 내리는 캔버스 -->
+  <canvas id="snow-canvas" class="fixed inset-0 w-full h-full pointer-events-none z-0"></canvas>
+  <!-- 정답 축하 폭죽 캔버스 -->
+  <canvas id="confetti-canvas" class="fixed inset-0 w-full h-full pointer-events-none z-50"></canvas>
+
+  <!-- 상단 크리스마스 전구 장식 바 -->
+  <div class="w-full h-3 k-pattern-border relative z-10 shadow-md"></div>
+
+  <!-- 헤더 영역 -->
+  <header class="relative z-10 w-full max-w-5xl mx-auto px-4 pt-4 pb-2 flex flex-wrap items-center justify-between gap-3">
+    <!-- 동아리 및 부스 배지 -->
+    <div class="flex items-center gap-2.5">
+      <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-emerald-500 to-pine-800 border-2 border-amber-300/70 flex items-center justify-center shadow-lg text-2xl">
+        🌿
+      </div>
+      <div>
+        <div class="flex items-center gap-1.5">
+          <span class="px-2 py-0.5 text-xs font-bold rounded-full bg-red-600/90 text-amber-100 border border-amber-300/40 tracking-wide">
+            환경과학동아리 에코네스트
+          </span>
+          <span class="px-2 py-0.5 text-xs font-bold rounded-full bg-amber-500/20 text-amber-300 border border-amber-400/40">
+            K-컬처 전시발표회
+          </span>
+        </div>
+        <h1 class="font-display text-xl sm:text-2xl md:text-3xl text-amber-200 drop-shadow mt-0.5 tracking-tight">
+          🎄 K-에코뷰티 크리스마스 퀴즈 뽑기 🎁
+        </h1>
+      </div>
+    </div>
+
+    <!-- 우측 상태 표시 & 운영진 컨트롤 -->
+    <div class="flex items-center gap-2 ml-auto sm:ml-0">
+      <!-- 남은 문제 카운터 -->
+      <div class="px-3 py-1.5 rounded-2xl bg-pine-900/90 border border-amber-400/40 shadow-inner flex items-center gap-1.5 text-xs sm:text-sm">
+        <span class="text-amber-300 font-bold">🔮 남은 캡슐</span>
+        <span id="remaining-badge" class="font-display text-base sm:text-lg text-white">50 / 50</span>
+      </div>
+
+      <!-- 효과음 토글 버튼 -->
+      <button
+        id="sound-toggle-btn"
+        type="button"
+        title="효과음 켜기/끄기"
+        class="p-2.5 rounded-2xl bg-pine-900/90 hover:bg-pine-800 border border-amber-400/40 text-amber-200 transition active:scale-95 shadow"
+      >
+        <span id="sound-icon" class="text-lg leading-none">🔊</span>
+      </button>
+
+      <!-- 운영진 설정 모달 열기 버튼 -->
+      <button
+        id="open-settings-btn"
+        type="button"
+        title="운영진 설정 및 문제 목록"
+        class="p-2.5 rounded-2xl bg-pine-900/90 hover:bg-pine-800 border border-amber-400/40 text-amber-200 transition active:scale-95 shadow flex items-center gap-1 text-xs sm:text-sm font-bold"
+      >
+        <span class="text-lg leading-none">⚙️</span>
+        <span class="hidden md:inline">운영진 설정</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- 메인 콘텐츠 컨테이너 -->
+  <main class="relative z-10 flex-1 w-full max-w-4xl mx-auto px-4 py-3 flex flex-col items-center justify-center">
+
+    <!-- [화면 1] 크리스마스 K-에코뷰티 캡슐 뽑기 머신 -->
+    <section id="screen-gacha" class="w-full flex flex-col items-center justify-center transition-all duration-300">
+      <!-- 안내 문구 배너 -->
+      <div class="mb-4 px-5 py-2.5 rounded-full bg-gradient-to-r from-red-900/80 via-pine-900/90 to-red-900/80 border border-amber-300/50 shadow-lg text-center">
+        <p class="text-sm sm:text-base font-medium text-amber-100">
+          ✨ <strong class="text-amber-300 font-bold">K-에코뷰티</strong>와 함께하는 지속가능한 아름다움! 환경 퀴즈를 맞히고 선물을 받아가세요 ✨
+        </p>
+      </div>
+
+      <!-- 뽑기 머신 본체 -->
+      <div id="gacha-machine" class="relative flex flex-col items-center select-none my-1">
+        <!-- 머신 상단: 크리스마스 별 & 한국 전통 노리개/매듭 장식 -->
+        <div class="relative z-20 flex flex-col items-center -mb-5">
+          <!-- 반짝이는 황금 별 -->
+          <div class="text-4xl sm:text-5xl drop-shadow-[0_0_15px_rgba(251,191,36,0.9)] animate-pulse">
+            ⭐
+          </div>
+          <!-- 지붕 캡 -->
+          <div class="w-40 sm:w-48 h-9 rounded-t-full bg-gradient-to-b from-red-600 via-red-700 to-red-900 border-2 border-amber-300 shadow-lg flex items-center justify-center gap-2 px-3">
+            <span class="w-2.5 h-2.5 rounded-full bg-amber-300 bulb-twinkle"></span>
+            <span class="font-display text-xs sm:text-sm text-amber-100 tracking-wider">K-ECO BEAUTY</span>
+            <span class="w-2.5 h-2.5 rounded-full bg-emerald-300 bulb-twinkle" style="animation-delay: 0.8s;"></span>
+          </div>
+        </div>
+
+        <!-- 머신 중앙: 스노우볼 유리 돔 & 캡슐들 -->
+        <div
+          id="globe-trigger"
+          role="button"
+          tabindex="0"
+          aria-label="뽑기 캡슐 돔 클릭하여 뽑기"
+          class="relative z-10 w-64 h-64 sm:w-80 sm:h-80 rounded-full glass-globe border-4 border-amber-300/80 flex items-center justify-center overflow-hidden cursor-pointer group transition-transform hover:scale-[1.01]"
+        >
+          <!-- 유리 돔 내부 크리스마스 트리 실루엣 & K-문양 배경 -->
+          <svg viewBox="0 0 200 200" class="absolute inset-0 w-full h-full opacity-35 pointer-events-none">
+            <!-- 크리스마스 트리 -->
+            <polygon points="100,22 55,85 145,85" fill="#10b981" />
+            <polygon points="100,55 42,128 158,128" fill="#059669" />
+            <polygon points="100,92 30,172 170,172" fill="#047857" />
+            <rect x="88" y="172" width="24" height="22" fill="#78350f" />
+            <!-- 트리 전구 장식 -->
+            <circle cx="100" cy="45" r="4" fill="#fbbf24" />
+            <circle cx="78" cy="75" r="4" fill="#ef4444" />
+            <circle cx="122" cy="75" r="4" fill="#fbbf24" />
+            <circle cx="65" cy="115" r="4.5" fill="#38bdf8" />
+            <circle cx="100" cy="110" r="4.5" fill="#ef4444" />
+            <circle cx="135" cy="115" r="4.5" fill="#fbbf24" />
+            <circle cx="52" cy="155" r="5" fill="#fbbf24" />
+            <circle cx="85" cy="150" r="5" fill="#f472b6" />
+            <circle cx="118" cy="152" r="5" fill="#ef4444" />
+            <circle cx="148" cy="155" r="5" fill="#38bdf8" />
+          </svg>
+
+          <!-- 유리 돔 내부 캡슐 컨테이너 (JS로 14개의 캡슐 렌더링) -->
+          <div id="capsules-container" class="relative w-full h-full"></div>
+
+          <!-- 유리 하이라이트 반사광 -->
+          <div class="absolute top-5 left-8 w-16 h-8 rounded-full bg-white/30 -rotate-35 blur-[1px] pointer-events-none"></div>
+          <div class="absolute bottom-0 inset-x-0 h-8 bg-gradient-to-t from-white/25 to-transparent pointer-events-none"></div>
+        </div>
+
+        <!-- 머신 하단: 받침대, 회전 레버, 배출구 -->
+        <div class="relative z-20 -mt-6 w-60 sm:w-72 rounded-3xl bg-gradient-to-b from-red-700 via-red-800 to-red-950 border-4 border-amber-300 shadow-2xl pt-5 pb-4 px-5 flex flex-col items-center">
+          <!-- 전통 문양 띠 -->
+          <div class="w-full h-2 rounded-full k-pattern-border mb-3"></div>
+
+          <div class="w-full flex items-center justify-between gap-3">
+            <!-- 좌측: 배출구 (캡슐 나오는 곳) -->
+            <div class="flex-1 flex flex-col items-center">
+              <span class="text-[11px] font-bold text-amber-200/90 mb-1 tracking-wider">GIFT CHUTE</span>
+              <div id="chute-box" class="w-full h-16 rounded-2xl bg-pine-950 border-2 border-amber-400/60 shadow-inner flex items-center justify-center relative overflow-hidden">
+                <span id="chute-placeholder" class="text-xs text-amber-200/50 font-medium">캡슐 배출구</span>
+                <!-- 뽑힌 캡슐이 잠깐 나타나는 슬롯 -->
+                <div id="dispensed-capsule" class="hidden w-12 h-12 rounded-full border-2 border-white shadow-lg flex items-center justify-center text-xl">
+                  🎁
+                </div>
+              </div>
+            </div>
+
+            <!-- 우측: 황금 회전 레버 -->
+            <div class="flex flex-col items-center">
+              <span class="text-[11px] font-bold text-amber-200/90 mb-1 tracking-wider">TURN</span>
+              <button
+                id="crank-btn"
+                type="button"
+                aria-label="뽑기 레버 돌리기"
+                class="w-16 h-16 rounded-full bg-gradient-to-br from-amber-300 via-amber-500 to-amber-700 border-4 border-amber-100 shadow-lg flex items-center justify-center cursor-pointer active:scale-90 transition hover:brightness-110"
+              >
+                <div id="crank-handle" class="w-12 h-3.5 rounded-full bg-gradient-to-r from-red-700 via-red-600 to-red-800 border border-amber-200 shadow flex items-center justify-center">
+                  <div class="w-3 h-3 rounded-full bg-amber-200"></div>
+                </div>
+              </button>
+            </div>
+          </div>
+
+          <!-- 하단 동아리 명판 -->
+          <div class="mt-3 px-3 py-1 rounded-full bg-pine-950/80 border border-amber-400/40 text-[11px] text-amber-200 font-bold tracking-widest">
+            ECONEST × K-ECO BEAUTY
+          </div>
+        </div>
+      </div>
+
+      <!-- 메인 액션 버튼 -->
+      <div class="mt-5 flex flex-col items-center gap-2">
+        <button
+          id="draw-main-btn"
+          type="button"
+          class="group relative px-8 py-4 rounded-full bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-500 text-pine-950 font-display text-xl sm:text-2xl shadow-[0_8px_25px_rgba(245,158,11,0.5)] border-2 border-white hover:scale-105 active:scale-95 transition-all flex items-center gap-2.5 cursor-pointer"
+        >
+          <span class="text-2xl group-hover:rotate-12 transition-transform">🎁</span>
+          <span id="draw-btn-text">행운의 퀴즈 캡슐 뽑기!</span>
+          <span class="text-2xl group-hover:-rotate-12 transition-transform">🎄</span>
+        </button>
+        <p id="filter-status-hint" class="text-xs text-emerald-200/80">
+          현재 출제 범위: 전체 50문제 (객관식 + O/X)
+        </p>
+      </div>
+    </section>
+
+    <!-- [화면 2] 퀴즈 풀이 카드 -->
+    <section id="screen-quiz" class="hidden w-full max-w-2xl">
+      <div class="animate-pop-in rounded-3xl bg-pine-900/95 backdrop-blur-md border-2 border-amber-300/80 shadow-[0_20px_60px_rgba(0,0,0,0.75)] overflow-hidden">
+        <!-- 카드 상단 바 -->
+        <div class="bg-gradient-to-r from-red-800 via-red-700 to-red-800 px-5 py-3.5 border-b border-amber-300/40 flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <span id="quiz-capsule-icon" class="text-2xl">🔮</span>
+            <span id="quiz-badge" class="font-display text-base sm:text-lg text-amber-200">
+              캡슐 #01 · 객관식 퀴즈
+            </span>
+          </div>
+          <span class="px-3 py-1 rounded-full bg-pine-950/60 text-xs font-bold text-emerald-300 border border-emerald-400/30">
+            🌿 K-에코뷰티 챌린지
+          </span>
+        </div>
+
+        <!-- 문제 본문 -->
+        <div class="p-6 sm:p-8">
+          <div class="mb-6">
+            <span class="inline-block text-xs font-bold uppercase tracking-wider text-amber-400 mb-1.5">
+              QUESTION
+            </span>
+            <h2 id="quiz-question-text" class="text-xl sm:text-2xl md:text-[26px] font-bold text-white leading-snug break-keep">
+              문제가 여기에 표시됩니다.
+            </h2>
+          </div>
+
+          <!-- 객관식 보기 영역 (4지선다) -->
+          <div id="mc-options-container" class="grid grid-cols-1 gap-3">
+            <!-- JS로 동적 생성 -->
+          </div>
+
+          <!-- O/X 보기 영역 -->
+          <div id="ox-options-container" class="hidden grid grid-cols-2 gap-4 sm:gap-6 mt-2">
+            <button
+              type="button"
+              data-ox="O"
+              class="ox-choice-btn group py-8 sm:py-10 rounded-3xl bg-gradient-to-b from-emerald-600 to-emerald-800 hover:from-emerald-500 hover:to-emerald-700 border-2 border-emerald-300/70 shadow-xl flex flex-col items-center justify-center gap-2 transition transform hover:-translate-y-1 active:scale-95 cursor-pointer"
+            >
+              <span class="text-5xl sm:text-6xl font-black text-white drop-shadow group-hover:scale-110 transition-transform">O</span>
+              <span class="font-display text-lg sm:text-xl text-emerald-100">그렇다 (O)</span>
+            </button>
+
+            <button
+              type="button"
+              data-ox="X"
+              class="ox-choice-btn group py-8 sm:py-10 rounded-3xl bg-gradient-to-b from-rose-600 to-red-800 hover:from-rose-500 hover:to-red-700 border-2 border-rose-300/70 shadow-xl flex flex-col items-center justify-center gap-2 transition transform hover:-translate-y-1 active:scale-95 cursor-pointer"
+            >
+              <span class="text-5xl sm:text-6xl font-black text-white drop-shadow group-hover:scale-110 transition-transform">X</span>
+              <span class="font-display text-lg sm:text-xl text-rose-100">아니다 (X)</span>
+            </button>
+          </div>
+
+          <!-- 하단 보조 안내 -->
+          <div class="mt-6 pt-4 border-t border-white/10 flex items-center justify-between text-xs text-emerald-200/70">
+            <span>💡 정답을 선택하면 바로 결과를 확인할 수 있어요!</span>
+            <button
+              id="skip-question-btn"
+              type="button"
+              class="text-amber-300/70 hover:text-amber-300 underline cursor-pointer"
+            >
+              다른 문제 다시 뽑기
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- [화면 3] 정답 / 오답 및 상품 증정 화면 -->
+    <section id="screen-result" class="hidden w-full max-w-xl">
+      <div id="result-card" class="animate-pop-in rounded-3xl bg-pine-900/95 backdrop-blur-md border-2 border-amber-300 shadow-[0_20px_60px_rgba(0,0,0,0.8)] overflow-hidden text-center">
+        <!-- 결과 상단 배너 -->
+        <div id="result-header-bg" class="py-6 px-6 bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 text-pine-950">
+          <div id="result-emoji" class="text-5xl sm:text-6xl mb-2 drop-shadow">🎉</div>
+          <h2 id="result-title" class="font-display text-2xl sm:text-4xl tracking-tight">
+            정답입니다! 축하합니다!
+          </h2>
+          <p id="result-subtitle" class="text-sm sm:text-base font-bold mt-1 opacity-90">
+            환경 지식이 뛰어난 K-에코뷰티 챔피언!
+          </p>
+        </div>
+
+        <!-- 결과 본문 -->
+        <div class="p-6 sm:p-8 flex flex-col items-center">
+          <!-- 선택한 답 & 정답 요약 -->
+          <div class="w-full rounded-2xl bg-pine-950/80 border border-white/15 p-4 mb-5 text-left">
+            <p id="result-question-review" class="text-xs sm:text-sm text-emerald-200/80 mb-2 break-keep">
+              Q. 문제 요약
+            </p>
+            <div class="flex flex-wrap items-center gap-2 text-sm sm:text-base font-bold">
+              <span class="px-2.5 py-0.5 rounded-lg bg-emerald-500/20 text-emerald-300 border border-emerald-400/40">
+                정답
+              </span>
+              <span id="result-correct-answer" class="text-amber-200">
+                ② 이산화탄소
+              </span>
+            </div>
+          </div>
+
+          <!-- 정답일 때만 보이는 상품 증정 쿠폰 박스 -->
+          <div id="prize-voucher-box" class="w-full rounded-2xl bg-gradient-to-br from-red-900/90 via-red-800/90 to-pine-900 border-2 border-dashed border-amber-300 p-5 mb-6 shadow-inner relative overflow-hidden">
+            <div class="text-xs font-bold tracking-widest text-amber-300 uppercase mb-1">
+              🎄 K-ECO BEAUTY GIFT VOUCHER 🎄
+            </div>
+            <div id="prize-name-display" class="font-display text-2xl sm:text-3xl text-white drop-shadow my-1">
+              🎁 K-에코뷰티 스페셜 선물 증정!
+            </div>
+            <p class="text-xs sm:text-sm text-amber-100/90 mt-1">
+              이 화면을 부스 운영진(에코네스트)에게 보여주시면 상품을 드립니다!
+            </p>
+          </div>
+
+          <!-- 오답일 때 보이는 격려 메시지 박스 -->
+          <div id="encourage-box" class="hidden w-full rounded-2xl bg-pine-950/70 border border-amber-400/30 p-5 mb-6">
+            <p class="font-display text-xl text-amber-200 mb-1">
+              아쉽지만 다음 기회에 도전해보세요! 🎅
+            </p>
+            <p class="text-xs sm:text-sm text-emerald-100/80">
+              K-에코뷰티 부스를 방문해주셔서 감사합니다. 메리 크리스마스! 🎄
+            </p>
+          </div>
+
+          <!-- 다음 참가자 버튼 -->
+          <button
+            id="next-participant-btn"
+            type="button"
+            class="w-full sm:w-auto px-8 py-4 rounded-full bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-display text-xl shadow-lg border-2 border-emerald-200/70 transition transform hover:scale-105 active:scale-95 cursor-pointer flex items-center justify-center gap-2"
+          >
+            <span>🔄</span>
+            <span>다음 참가자 (뽑기 화면으로)</span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- 푸터 -->
+  <footer class="relative z-10 w-full py-3 px-4 text-center text-xs text-emerald-200/60">
+    <p>🌿 환경과학동아리 <strong class="text-amber-300/80">에코네스트 (ECONEST)</strong> · 전시발표회 <strong class="text-amber-300/80">K-에코뷰티</strong> 부스 이벤트 🎄</p>
+  </footer>
+
+  <!-- [모달] 운영진 설정 및 문제 은행 -->
+  <div id="settings-modal" class="hidden fixed inset-0 z-40 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="w-full max-w-2xl max-h-[90vh] rounded-3xl bg-pine-900 border-2 border-amber-300/80 shadow-2xl flex flex-col overflow-hidden">
+      <!-- 모달 헤더 -->
+      <div class="px-6 py-4 bg-red-900/90 border-b border-amber-300/40 flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <span class="text-xl">⚙️</span>
+          <h3 class="font-display text-xl text-amber-200">에코네스트 부스 운영진 설정</h3>
+        </div>
+        <button id="close-settings-btn" type="button" class="p-1.5 rounded-xl bg-black/30 hover:bg-black/50 text-white text-lg leading-none cursor-pointer">
+          ✕
+        </button>
+      </div>
+
+      <!-- 모달 본문 (스크롤 가능) -->
+      <div class="p-6 overflow-y-auto space-y-6 text-sm">
+        <!-- 1. 현황 통계 -->
+        <div class="grid grid-cols-3 gap-3 text-center">
+          <div class="p-3 rounded-2xl bg-pine-950/80 border border-amber-400/30">
+            <div class="text-xs text-emerald-200/70">남은 문제</div>
+            <div id="stat-remaining" class="font-display text-2xl text-amber-300 mt-0.5">50</div>
+          </div>
+          <div class="p-3 rounded-2xl bg-pine-950/80 border border-emerald-400/30">
+            <div class="text-xs text-emerald-200/70">총 참여자</div>
+            <div id="stat-played" class="font-display text-2xl text-white mt-0.5">0</div>
+          </div>
+          <div class="p-3 rounded-2xl bg-pine-950/80 border border-rose-400/30">
+            <div class="text-xs text-emerald-200/70">정답자(상품)</div>
+            <div id="stat-correct" class="font-display text-2xl text-emerald-400 mt-0.5">0</div>
+          </div>
+        </div>
+
+        <!-- 2. 출제 문제 유형 필터 -->
+        <div class="space-y-2">
+          <label class="block font-bold text-amber-200">📌 출제 문제 유형 선택</label>
+          <div class="grid grid-cols-3 gap-2">
+            <button type="button" data-filter="all" class="filter-option-btn py-2.5 px-3 rounded-xl border font-bold transition cursor-pointer">
+              전체 (50문제)
+            </button>
+            <button type="button" data-filter="mc" class="filter-option-btn py-2.5 px-3 rounded-xl border font-bold transition cursor-pointer">
+              객관식만 (1~25)
+            </button>
+            <button type="button" data-filter="ox" class="filter-option-btn py-2.5 px-3 rounded-xl border font-bold transition cursor-pointer">
+              O/X만 (26~50)
+            </button>
+          </div>
+        </div>
+
+        <!-- 3. 정답 시 상품 안내 문구 설정 -->
+        <div class="space-y-2">
+          <div class="flex items-center justify-between">
+            <label for="prize-input" class="font-bold text-amber-200">🎁 정답 시 상품 표시 문구 (줄바꿈으로 여러 상품 랜덤 추첨 가능)</label>
+          </div>
+          <textarea
+            id="prize-input"
+            rows="3"
+            class="w-full rounded-2xl bg-pine-950 border border-amber-400/40 p-3 text-white text-sm focus:outline-none focus:border-amber-300"
+            placeholder="예: K-에코뷰티 친환경 굿즈 증정!"
+          ></textarea>
+          <div class="flex items-center justify-between">
+            <span class="text-xs text-emerald-200/70">여러 줄 입력 시 정답 화면에서 무작위 상품명이 뜹니다.</span>
+            <button id="save-prizes-btn" type="button" class="px-4 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-pine-950 font-bold text-xs cursor-pointer">
+              상품 문구 저장
+            </button>
+          </div>
+          <p id="prize-save-feedback" class="hidden text-xs text-emerald-400 font-bold">✅ 상품 문구가 저장되었습니다!</p>
+        </div>
+
+        <!-- 4. 뽑기 풀 초기화 -->
+        <div class="p-4 rounded-2xl bg-red-950/60 border border-red-400/40 flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <div class="font-bold text-rose-200">🔄 뽑기 기록 초기화</div>
+            <div class="text-xs text-rose-200/70">이미 출제된 문제 기록과 참여 통계를 처음 상태로 되돌립니다.</div>
+          </div>
+          <button
+            id="reset-pool-btn"
+            type="button"
+            class="px-4 py-2 rounded-xl bg-red-600 hover:bg-red-500 text-white font-bold text-xs shadow cursor-pointer transition"
+          >
+            전체 기록 초기화
+          </button>
+        </div>
+
+        <!-- 5. 전체 50문제 정답표 미리보기 -->
+        <div class="space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="font-bold text-amber-200">📋 전체 50문제 및 정답 확인</span>
+            <span class="text-xs text-emerald-200/70">초록색: 미출제 / 회색: 출제완료</span>
+          </div>
+          <div id="question-bank-list" class="max-h-56 overflow-y-auto rounded-2xl bg-pine-950/90 border border-white/10 divide-y divide-white/10 p-2 space-y-1">
+            <!-- JS로 50문제 리스트 렌더링 -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 토스트 알림 메시지 (alert 대신 사용) -->
+  <div id="toast-box" class="fixed bottom-5 left-1/2 -translate-x-1/2 z-50 pointer-events-none opacity-0 transition-opacity duration-300">
+    <div id="toast-message" class="px-5 py-2.5 rounded-full bg-pine-950/95 border border-amber-300 text-amber-200 text-sm font-bold shadow-xl">
+      알림 메시지
+    </div>
+  </div>
+
+  <script>
+    /**
+     * ============================================================================
+     * 1. 환경과학동아리 에코네스트 - K-에코뷰티 전시발표회 퀴즈 데이터 (총 50문제)
+     * ============================================================================
+     */
+    const QUIZ_DATA = [
+      // 객관식 1 ~ 25
+      { id: 1, type: 'mc', question: '다음 중 온실가스에 해당하는 것은?', options: ['산소', '이산화탄소', '질소', '수소'], answer: 1 },
+      { id: 2, type: 'mc', question: '지구온난화의 주요 원인으로 가장 적절한 것은?', options: ['화산 활동', '온실가스 증가', '지구 자전', '달의 인력'], answer: 1 },
+      { id: 3, type: 'mc', question: '다음 중 재생에너지에 해당하지 않는 것은?', options: ['태양광 에너지', '풍력 에너지', '석탄 에너지', '수력 에너지'], answer: 2 },
+      { id: 4, type: 'mc', question: '음식물 쓰레기를 줄이는 방법으로 가장 적절한 것은?', options: ['필요한 만큼만 음식 준비하기', '남은 음식을 모두 버리기', '음식을 많이 구매하기', '유통기한이 남은 음식도 버리기'], answer: 0 },
+      { id: 5, type: 'mc', question: '다음 중 생분해가 가능한 소재로 가장 적절한 것은?', options: ['일반 플라스틱', '일부 생분해성 플라스틱', '스티로폼', '비닐봉지'], answer: 1 },
+      { id: 6, type: 'mc', question: '산성비가 발생하는 주요 원인은?', options: ['산소 배출', '이산화황과 질소산화물 배출', '수증기 증가', '바람의 방향 변화'], answer: 1 },
+      { id: 7, type: 'mc', question: '다음 중 물을 절약하는 방법은?', options: ['양치할 때 물을 계속 틀어 놓기', '샤워 시간을 줄이기', '설거지할 때 물을 계속 흘려보내기', '물을 필요 이상으로 받아 놓기'], answer: 1 },
+      { id: 8, type: 'mc', question: '생태계에서 생산자의 대표적인 예시는?', options: ['토끼', '독수리', '식물', '곰팡이'], answer: 2 },
+      { id: 9, type: 'mc', question: '다음 중 멸종위기종 보호를 위한 행동은?', options: ['야생동물의 서식지 파괴', '불법 포획', '서식지 보전', '야생동물 무단 거래'], answer: 2 },
+      { id: 10, type: 'mc', question: '미세플라스틱이 환경에 미치는 영향으로 적절한 것은?', options: ['해양 생물에게 피해를 줄 수 있다', '바닷물을 깨끗하게 만든다', '생물의 성장을 항상 촉진한다', '자연에서 즉시 사라진다'], answer: 0 },
+      { id: 11, type: 'mc', question: '업사이클링의 의미는?', options: ['물건을 태워 없애는 것', '버려지는 물건에 새로운 가치를 더하는 것', '물건을 무조건 새로 구매하는 것', '쓰레기를 땅에 묻는 것'], answer: 1 },
+      { id: 12, type: 'mc', question: '숲이 환경에 주는 긍정적인 영향은?', options: ['토양 침식 증가', '생물의 서식지 제공', '대기오염 증가', '생물 다양성 감소'], answer: 1 },
+      { id: 13, type: 'mc', question: '폐건전지를 일반 쓰레기와 분리해야 하는 이유는?', options: ['무게가 가벼워서', '유해 물질이 포함될 수 있어서', '냄새가 나서', '크기가 작아서'], answer: 1 },
+      { id: 14, type: 'mc', question: '다음 중 친환경 교통수단으로 가장 적절한 것은?', options: ['자전거', '대형 디젤 차량', '혼자 이용하는 승용차', '노후 경유 차량'], answer: 0 },
+      { id: 15, type: 'mc', question: '전기를 절약하는 방법으로 적절한 것은?', options: ['사용하지 않는 조명 끄기', '사용하지 않는 전자기기 계속 켜 두기', '냉난방 중 창문 열어 두기', '충전기를 항상 꽂아 두기'], answer: 0 },
+      { id: 16, type: 'mc', question: '생물 다양성이 중요한 이유는?', options: ['생태계의 균형 유지에 도움을 주기 때문에', '모든 생물의 크기를 같게 만들기 때문에', '생물의 종류를 줄이기 때문에', '자연환경을 단순하게 만들기 때문에'], answer: 0 },
+      { id: 17, type: 'mc', question: '다음 중 대기오염을 줄이는 행동은?', options: ['가까운 거리는 걷기', '쓰레기 무단 소각', '자동차 공회전', '화석연료 사용 늘리기'], answer: 0 },
+      { id: 18, type: 'mc', question: '환경 발자국이란 무엇을 의미하는가?', options: ['신발이 남긴 흔적', '인간의 활동이 환경에 미치는 영향', '동물의 이동 경로', '산림의 넓이'], answer: 1 },
+      { id: 19, type: 'mc', question: '다음 중 해양오염의 원인이 될 수 있는 것은?', options: ['해양 보호구역 지정', '해양 쓰레기 투기', '해안 정화 활동', '폐수 처리 시설 설치'], answer: 1 },
+      { id: 20, type: 'mc', question: '종이를 절약하는 방법으로 가장 적절한 것은?', options: ['양면 인쇄하기', '한 장에 한 글자씩 쓰기', '사용하지 않는 종이 버리기', '필요한 양보다 많이 출력하기'], answer: 0 },
+      { id: 21, type: 'mc', question: '다음 중 환경 보호를 위한 소비 방식은?', options: ['필요한 물건만 구매하기', '유행에 따라 자주 교체하기', '포장이 많은 제품 선택하기', '일회용품을 자주 구매하기'], answer: 0 },
+      { id: 22, type: 'mc', question: '오존층의 주요 역할은?', options: ['지구의 중력을 높인다', '자외선으로부터 지구 생물을 보호한다', '지진을 막는다', '바닷물의 염도를 조절한다'], answer: 1 },
+      { id: 23, type: 'mc', question: '다음 중 토양오염의 원인이 될 수 있는 것은?', options: ['무분별한 농약 사용', '나무 심기', '퇴비 활용', '토양 정화 활동'], answer: 0 },
+      { id: 24, type: 'mc', question: '탄소중립이란 무엇인가?', options: ['탄소 배출량을 무조건 0으로 만드는 것만 의미한다', '온실가스 배출량과 흡수량을 균형 있게 맞추는 것', '석탄 사용량을 늘리는 것', '플라스틱 생산을 늘리는 것'], answer: 1 },
+      { id: 25, type: 'mc', question: '다음 중 환경 보호를 위한 실천으로 가장 적절한 것은?', options: ['일회용품 사용 줄이기', '쓰레기 무단 투기', '에너지 낭비하기', '야생동물 서식지 훼손하기'], answer: 0 },
+
+      // O/X 26 ~ 50
+      { id: 26, type: 'ox', question: '태양광 에너지는 재생에너지에 해당한다.', answer: 'O' },
+      { id: 27, type: 'ox', question: '지구온난화는 지구의 평균 기온 상승과 관련이 있다.', answer: 'O' },
+      { id: 28, type: 'ox', question: '음식물 쓰레기는 매립되면 환경에 아무런 영향을 주지 않는다.', answer: 'X' },
+      { id: 29, type: 'ox', question: '나무는 광합성을 통해 이산화탄소를 흡수한다.', answer: 'O' },
+      { id: 30, type: 'ox', question: '모든 플라스틱은 자연에서 빠르게 분해된다.', answer: 'X' },
+      { id: 31, type: 'ox', question: '산성비는 토양과 수생 생태계에 피해를 줄 수 있다.', answer: 'O' },
+      { id: 32, type: 'ox', question: '멸종위기종의 서식지를 보호하는 것은 생물 다양성 보전에 도움이 된다.', answer: 'O' },
+      { id: 33, type: 'ox', question: '대중교통을 이용하면 개인의 온실가스 배출량을 줄이는 데 도움이 될 수 있다.', answer: 'O' },
+      { id: 34, type: 'ox', question: '바다에 버려진 플라스틱은 해양 생물에게 피해를 줄 수 있다.', answer: 'O' },
+      { id: 35, type: 'ox', question: '사용하지 않는 전등을 끄는 것은 에너지 절약에 도움이 된다.', answer: 'O' },
+      { id: 36, type: 'ox', question: '오존층은 지구에 도달하는 유해한 자외선을 줄이는 역할을 한다.', answer: 'O' },
+      { id: 37, type: 'ox', question: '생태계에는 생산자, 소비자, 분해자가 존재한다.', answer: 'O' },
+      { id: 38, type: 'ox', question: '폐건전지는 일반 쓰레기와 함께 버려도 된다.', answer: 'X' },
+      { id: 39, type: 'ox', question: '종이를 양면으로 사용하면 종이 소비를 줄일 수 있다.', answer: 'O' },
+      { id: 40, type: 'ox', question: '미세플라스틱은 크기가 작기 때문에 환경에 영향을 주지 않는다.', answer: 'X' },
+      { id: 41, type: 'ox', question: '풍력 발전은 바람의 운동에너지를 이용한다.', answer: 'O' },
+      { id: 42, type: 'ox', question: '생물 다양성이 높을수록 생태계가 다양한 환경 변화에 대응하는 데 도움이 될 수 있다.', answer: 'O' },
+      { id: 43, type: 'ox', question: '탄소중립은 온실가스 배출과 흡수의 균형을 맞추는 개념이다.', answer: 'O' },
+      { id: 44, type: 'ox', question: '업사이클링은 버려지는 물건에 새로운 가치를 더하는 활동이다.', answer: 'O' },
+      { id: 45, type: 'ox', question: '자동차 공회전은 불필요한 연료 소비와 대기오염을 유발할 수 있다.', answer: 'O' },
+      { id: 46, type: 'ox', question: '습지는 다양한 생물의 서식지 역할을 한다.', answer: 'O' },
+      { id: 47, type: 'ox', question: '일회용품 사용을 줄이면 폐기물 발생량을 줄이는 데 도움이 된다.', answer: 'O' },
+      { id: 48, type: 'ox', question: '화석연료는 자연에서 매우 짧은 시간 안에 다시 만들어지는 에너지이다.', answer: 'X' },
+      { id: 49, type: 'ox', question: '병뚜껑은 재질에 따라 분리배출 및 재활용이 가능하다.', answer: 'O' },
+      { id: 50, type: 'ox', question: '환경 보호는 정부와 기업만 실천하면 되며 개인의 행동은 중요하지 않다.', answer: 'X' }
+    ];
+
+    const CIRCLED_NUMS = ['①', '②', '③', '④'];
+
+    /**
+     * ============================================================================
+     * 2. 앱 상태 관리 (localStorage 연동으로 새로고침 시에도 부스 진행 상황 보존)
+     * ============================================================================
+     */
+    const STORAGE_KEY = 'econest_k_ecobeauty_quiz_v1';
+
+    let appState = {
+      usedIds: [],
+      playedCount: 0,
+      correctCount: 0,
+      filterMode: 'all', // 'all' | 'mc' | 'ox'
+      soundEnabled: true,
+      prizes: [
+        '🎁 K-에코뷰티 스페셜 친환경 선물 증정!'
+      ]
+    };
+
+    let currentQuestion = null;
+    let isDrawing = false;
+    let resetConfirmPending = false;
+
+    function loadState() {
+      try {
+        const saved = localStorage.getItem(STORAGE_KEY);
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          appState = { ...appState, ...parsed };
+        }
+      } catch (e) {
+        console.warn('저장된 상태를 불러오는 중 오류 발생:', e);
+      }
+    }
+
+    function saveState() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
+      } catch (e) {
+        console.warn('상태 저장 실패:', e);
+      }
+    }
+
+    /**
+     * ============================================================================
+     * 3. Tone.js 사운드 이펙트 (외부 오디오 파일 없이 신디사이저로 효과음 생성)
+     * ============================================================================
+     */
+    let synth = null;
+    let bellSynth = null;
+
+    async function ensureAudio() {
+      if (!appState.soundEnabled) return false;
+      try {
+        if (Tone.context.state !== 'running') {
+          await Tone.start();
+        }
+        if (!synth) {
+          synth = new Tone.PolySynth(Tone.Synth, {
+            oscillator: { type: 'triangle' },
+            envelope: { attack: 0.02, decay: 0.15, sustain: 0.1, release: 0.4 }
+          }).toDestination();
+          synth.volume.value = -8;
+        }
+        if (!bellSynth) {
+          bellSynth = new Tone.MetalSynth({
+            frequency: 400,
+            envelope: { attack: 0.001, decay: 0.3, release: 0.2 },
+            harmonicity: 5.1,
+            modulationIndex: 16,
+            resonance: 3000,
+            octaves: 1.5
+          }).toDestination();
+          bellSynth.volume.value = -16;
+        }
+        return true;
+      } catch (e) {
+        return false;
+      }
+    }
+
+    async function playSound(type) {
+      if (!appState.soundEnabled) return;
+      const ready = await ensureAudio();
+      if (!ready) return;
+
+      const now = Tone.now();
+      if (type === 'click') {
+        synth.triggerAttackRelease('G5', '32n', now);
+      } else if (type === 'draw') {
+        // 캡슐 섞이는 경쾌한 상승 아르페지오
+        const notes = ['C5', 'E5', 'G5', 'A5', 'C6', 'G5', 'E5', 'C6'];
+        notes.forEach((note, idx) => {
+          synth.triggerAttackRelease(note, '16n', now + idx * 0.09);
+        });
+      } else if (type === 'pop') {
+        synth.triggerAttackRelease(['C5', 'E5', 'G5', 'B5'], '8n', now);
+        bellSynth.triggerAttackRelease('16n', now);
+      } else if (type === 'win') {
+        // 크리스마스 징글벨 느낌의 축하 팡파르
+        synth.triggerAttackRelease('E5', '8n', now);
+        synth.triggerAttackRelease('E5', '8n', now + 0.14);
+        synth.triggerAttackRelease('E5', '4n', now + 0.28);
+        synth.triggerAttackRelease(['C5', 'E5', 'G5', 'C6'], '2n', now + 0.52);
+        bellSynth.triggerAttackRelease('8n', now + 0.52);
+      } else if (type === 'lose') {
+        synth.triggerAttackRelease('E4', '8n', now);
+        synth.triggerAttackRelease('C4', '4n', now + 0.18);
+      }
+    }
+
+    /**
+     * ============================================================================
+     * 4. 스노우볼 내부 캡슐 렌더링
+     * ============================================================================
+     */
+    const CAPSULE_STYLES = [
+      { bg: 'from-red-500 to-red-700', emoji: '🎄', left: '16%', top: '52%', rot: '-18deg', delay: '0s' },
+      { bg: 'from-amber-300 to-amber-500', emoji: '⭐', left: '34%', top: '60%', rot: '12deg', delay: '0.4s' },
+      { bg: 'from-emerald-400 to-emerald-700', emoji: '🌿', left: '54%', top: '56%', rot: '-8deg', delay: '0.8s' },
+      { bg: 'from-rose-400 to-pink-600', emoji: '🎀', left: '70%', top: '48%', rot: '22deg', delay: '0.2s' },
+      { bg: 'from-sky-400 to-blue-600', emoji: '❄️', left: '22%', top: '34%', rot: '15deg', delay: '1.1s' },
+      { bg: 'from-amber-400 to-orange-600', emoji: '🔔', left: '45%', top: '38%', rot: '-14deg', delay: '0.6s' },
+      { bg: 'from-teal-400 to-emerald-600', emoji: '✨', left: '64%', top: '30%', rot: '9deg', delay: '1.3s' },
+      { bg: 'from-red-600 to-rose-800', emoji: '🎁', left: '12%', top: '68%', rot: '25deg', delay: '0.5s' },
+      { bg: 'from-yellow-300 to-amber-500', emoji: '🕯️', left: '30%', top: '74%', rot: '-20deg', delay: '0.9s' },
+      { bg: 'from-emerald-500 to-green-800', emoji: '♻️', left: '49%', top: '73%', rot: '14deg', delay: '0.3s' },
+      { bg: 'from-red-400 to-red-600', emoji: '🦌', left: '67%', top: '68%', rot: '-12deg', delay: '0.7s' },
+      { bg: 'from-purple-400 to-indigo-600', emoji: '🌙', left: '38%', top: '20%', rot: '18deg', delay: '1.0s' },
+    ];
+
+    function renderDomeCapsules() {
+      const container = document.getElementById('capsules-container');
+      container.innerHTML = '';
+
+      CAPSULE_STYLES.forEach((cap) => {
+        const el = document.createElement('div');
+        el.className = `dome-capsule capsule-idle absolute w-11 h-11 sm:w-13 sm:h-13 rounded-full bg-gradient-to-br ${cap.bg} border-2 border-white/85 shadow-lg flex items-center justify-center text-base sm:text-lg overflow-hidden`;
+        el.style.left = cap.left;
+        el.style.top = cap.top;
+        el.style.setProperty('--rot', cap.rot);
+        el.style.animationDelay = cap.delay;
+
+        // 캡슐 반투명 상단 뚜껑 느낌의 하이라이트
+        el.innerHTML = `
+          <div class="absolute inset-x-0 top-0 h-1/2 bg-white/25 border-b border-white/40 pointer-events-none"></div>
+          <span class="relative z-10 drop-shadow">${cap.emoji}</span>
+        `;
+        container.appendChild(el);
+      });
+    }
+
+    /**
+     * ============================================================================
+     * 5. 핵심 뽑기 및 퀴즈 로직
+     * ============================================================================
+     */
+    function getFilteredQuestions() {
+      return QUIZ_DATA.filter((q) => {
+        if (appState.filterMode === 'mc') return q.type === 'mc';
+        if (appState.filterMode === 'ox') return q.type === 'ox';
+        return true;
+      });
+    }
+
+    function getAvailableQuestions() {
+      const filtered = getFilteredQuestions();
+      return filtered.filter((q) => !appState.usedIds.includes(q.id));
+    }
+
+    function updateUIStatus() {
+      const filtered = getFilteredQuestions();
+      const available = getAvailableQuestions();
+
+      document.getElementById('remaining-badge').textContent = `${available.length} / ${filtered.length}`;
+      document.getElementById('stat-remaining').textContent = available.length;
+      document.getElementById('stat-played').textContent = appState.playedCount;
+      document.getElementById('stat-correct').textContent = appState.correctCount;
+
+      const filterTextMap = {
+        all: `현재 출제 범위: 전체 ${filtered.length}문제 (객관식 + O/X)`,
+        mc: `현재 출제 범위: 객관식 전용 (${filtered.length}문제)`,
+        ox: `현재 출제 범위: O/X 전용 (${filtered.length}문제)`
+      };
+      document.getElementById('filter-status-hint').textContent = filterTextMap[appState.filterMode];
+
+      const soundIcon = document.getElementById('sound-icon');
+      soundIcon.textContent = appState.soundEnabled ? '🔊' : '🔇';
+    }
+
+    function showToast(msg) {
+      const toastBox = document.getElementById('toast-box');
+      const toastMsg = document.getElementById('toast-message');
+      toastMsg.textContent = msg;
+      toastBox.classList.remove('opacity-0');
+      toastBox.classList.add('opacity-100');
+
+      clearTimeout(window._toastTimer);
+      window._toastTimer = setTimeout(() => {
+        toastBox.classList.remove('opacity-100');
+        toastBox.classList.add('opacity-0');
+      }, 2400);
+    }
+
+    // 뽑기 시작 실행
+    function startDraw() {
+      if (isDrawing) return;
+
+      let available = getAvailableQuestions();
+
+      // 만약 선택한 유형의 문제를 모두 소진했다면 자동으로 해당 유형만 리셋 안내 후 재충전
+      if (available.length === 0) {
+        const filteredIds = getFilteredQuestions().map((q) => q.id);
+        appState.usedIds = appState.usedIds.filter((id) => !filteredIds.includes(id));
+        saveState();
+        available = getAvailableQuestions();
+        showToast('🎉 모든 문제가 한 바퀴 출제되어 캡슐을 새로 채웠습니다!');
+      }
+
+      isDrawing = true;
+      playSound('draw');
+
+      const machine = document.getElementById('gacha-machine');
+      const crankHandle = document.getElementById('crank-handle');
+      const capsules = document.querySelectorAll('.dome-capsule');
+      const drawBtnText = document.getElementById('draw-btn-text');
+
+      drawBtnText.textContent = '두근두근 캡슐 추첨 중...';
+      machine.classList.add('machine-shaking');
+      crankHandle.classList.add('crank-spinning');
+      capsules.forEach((c) => c.classList.add('capsule-mixing'));
+
+      // 무작위 문제 선택
+      const randomIndex = Math.floor(Math.random() * available.length);
+      currentQuestion = available[randomIndex];
+
+      // 0.85초 후 배출구에 캡슐 등장
+      setTimeout(() => {
+        machine.classList.remove('machine-shaking');
+        crankHandle.classList.remove('crank-spinning');
+        capsules.forEach((c) => c.classList.remove('capsule-mixing'));
+
+        const chutePlaceholder = document.getElementById('chute-placeholder');
+        const dispensedCap = document.getElementById('dispensed-capsule');
+        chutePlaceholder.classList.add('hidden');
+        dispensedCap.classList.remove('hidden');
+        dispensedCap.className =
+          'w-12 h-12 rounded-full bg-gradient-to-br from-amber-300 to-red-600 border-2 border-white shadow-lg flex items-center justify-center text-xl animate-pop-in';
+
+        playSound('pop');
+      }, 850);
+
+      // 1.4초 후 퀴즈 화면으로 전환
+      setTimeout(() => {
+        isDrawing = false;
+        drawBtnText.textContent = '행운의 퀴즈 캡슐 뽑기!';
+        document.getElementById('chute-placeholder').classList.remove('hidden');
+        document.getElementById('dispensed-capsule').classList.add('hidden');
+
+        openQuizScreen(currentQuestion);
+      }, 1450);
+    }
+
+    function openQuizScreen(question) {
+      document.getElementById('screen-gacha').classList.add('hidden');
+      document.getElementById('screen-result').classList.add('hidden');
+      document.getElementById('screen-quiz').classList.remove('hidden');
+
+      const paddedNum = String(question.id).padStart(2, '0');
+      const typeLabel = question.type === 'mc' ? '객관식 퀴즈' : 'O / X 퀴즈';
+      document.getElementById('quiz-badge').textContent = `캡슐 #${paddedNum} · ${typeLabel}`;
+      document.getElementById('quiz-question-text').textContent = question.question;
+
+      const mcContainer = document.getElementById('mc-options-container');
+      const oxContainer = document.getElementById('ox-options-container');
+
+      if (question.type === 'mc') {
+        mcContainer.classList.remove('hidden');
+        oxContainer.classList.add('hidden');
+        mcContainer.innerHTML = '';
+
+        question.options.forEach((optText, idx) => {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className =
+            'w-full text-left p-4 sm:p-5 rounded-2xl bg-pine-950/80 hover:bg-emerald-800/80 border-2 border-amber-300/35 hover:border-amber-300 transition-all flex items-center gap-3.5 group active:scale-[0.99] cursor-pointer shadow';
+          btn.innerHTML = `
+            <span class="w-9 h-9 rounded-xl bg-amber-400/20 group-hover:bg-amber-400 text-amber-300 group-hover:text-pine-950 font-display text-lg flex items-center justify-center shrink-0 transition-colors">
+              ${CIRCLED_NUMS[idx]}
+            </span>
+            <span class="text-base sm:text-lg font-medium text-white break-keep">${optText}</span>
+          `;
+          btn.addEventListener('click', () => handleAnswerSubmit(idx));
+          mcContainer.appendChild(btn);
+        });
+      } else {
+        mcContainer.classList.add('hidden');
+        oxContainer.classList.remove('hidden');
+      }
+    }
+
+    function handleAnswerSubmit(userChoice) {
+      if (!currentQuestion) return;
+
+      // 출제 완료 처리 및 통계 업데이트
+      if (!appState.usedIds.includes(currentQuestion.id)) {
+        appState.usedIds.push(currentQuestion.id);
+      }
+      appState.playedCount += 1;
+
+      const isCorrect = userChoice === currentQuestion.answer;
+      if (isCorrect) {
+        appState.correctCount += 1;
+      }
+      saveState();
+      updateUIStatus();
+
+      showResultScreen(isCorrect, currentQuestion);
+    }
+
+    function showResultScreen(isCorrect, question) {
+      document.getElementById('screen-quiz').classList.add('hidden');
+      document.getElementById('screen-result').classList.remove('hidden');
+
+      const headerBg = document.getElementById('result-header-bg');
+      const resultEmoji = document.getElementById('result-emoji');
+      const resultTitle = document.getElementById('result-title');
+      const resultSubtitle = document.getElementById('result-subtitle');
+      const prizeBox = document.getElementById('prize-voucher-box');
+      const encourageBox = document.getElementById('encourage-box');
+
+      // 정답 텍스트 포맷팅
+      let correctText = '';
+      if (question.type === 'mc') {
+        correctText = `${CIRCLED_NUMS[question.answer]} ${question.options[question.answer]}`;
+      } else {
+        correctText = question.answer === 'O' ? '⭕ O (그렇다)' : '❌ X (아니다)';
+      }
+
+      document.getElementById('result-question-review').textContent = `Q${question.id}. ${question.question}`;
+      document.getElementById('result-correct-answer').textContent = correctText;
+
+      if (isCorrect) {
+        playSound('win');
+        launchConfetti();
+
+        headerBg.className = 'py-6 px-6 bg-gradient-to-r from-amber-500 via-yellow-300 to-amber-500 text-pine-950';
+        resultEmoji.textContent = '🎉';
+        resultTitle.textContent = '정답입니다! 축하합니다!';
+        resultSubtitle.textContent = '환경 지식이 뛰어난 K-에코뷰티 챔피언!';
+
+        // 등록된 상품 목록 중 무작위 선택
+        const prizeList = appState.prizes.filter((p) => p.trim().length > 0);
+        const chosenPrize =
+          prizeList.length > 0
+            ? prizeList[Math.floor(Math.random() * prizeList.length)]
+            : '🎁 K-에코뷰티 스페셜 친환경 선물 증정!';
+        document.getElementById('prize-name-display').textContent = chosenPrize;
+
+        prizeBox.classList.remove('hidden');
+        encourageBox.classList.add('hidden');
+      } else {
+        playSound('lose');
+
+        headerBg.className = 'py-6 px-6 bg-gradient-to-r from-slate-700 via-slate-600 to-slate-700 text-white';
+        resultEmoji.textContent = '🦌';
+        resultTitle.textContent = '아쉽지만 오답이에요!';
+        resultSubtitle.textContent = '그래도 환경 상식 +1 획득! 참여해주셔서 감사합니다!';
+
+        prizeBox.classList.add('hidden');
+        encourageBox.classList.remove('hidden');
+      }
+    }
+
+    function returnToGachaScreen() {
+      playSound('click');
+      currentQuestion = null;
+      document.getElementById('screen-quiz').classList.add('hidden');
+      document.getElementById('screen-result').classList.add('hidden');
+      document.getElementById('screen-gacha').classList.remove('hidden');
+      updateUIStatus();
+    }
+
+    /**
+     * ============================================================================
+     * 6. 운영진 설정 모달 제어
+     * ============================================================================
+     */
+    function openSettingsModal() {
+      playSound('click');
+      resetConfirmPending = false;
+      const resetBtn = document.getElementById('reset-pool-btn');
+      resetBtn.textContent = '전체 기록 초기화';
+      resetBtn.classList.remove('bg-amber-500', 'text-pine-950');
+      resetBtn.classList.add('bg-red-600', 'text-white');
+
+      updateUIStatus();
+      updateFilterButtonsUI();
+      document.getElementById('prize-input').value = appState.prizes.join('\n');
+      document.getElementById('prize-save-feedback').classList.add('hidden');
+      renderQuestionBankList();
+
+      document.getElementById('settings-modal').classList.remove('hidden');
+    }
+
+    function closeSettingsModal() {
+      playSound('click');
+      document.getElementById('settings-modal').classList.add('hidden');
+    }
+
+    function updateFilterButtonsUI() {
+      document.querySelectorAll('.filter-option-btn').forEach((btn) => {
+        const mode = btn.dataset.filter;
+        if (mode === appState.filterMode) {
+          btn.className =
+            'filter-option-btn py-2.5 px-3 rounded-xl border-2 border-amber-300 bg-amber-400 text-pine-950 font-bold transition cursor-pointer';
+        } else {
+          btn.className =
+            'filter-option-btn py-2.5 px-3 rounded-xl border border-white/20 bg-pine-950/70 text-emerald-100 hover:bg-pine-800 font-bold transition cursor-pointer';
+        }
+      });
+    }
+
+    function renderQuestionBankList() {
+      const listEl = document.getElementById('question-bank-list');
+      listEl.innerHTML = '';
+
+      QUIZ_DATA.forEach((q) => {
+        const isUsed = appState.usedIds.includes(q.id);
+        const ansStr =
+          q.type === 'mc'
+            ? `${CIRCLED_NUMS[q.answer]} ${q.options[q.answer]}`
+            : q.answer;
+
+        const row = document.createElement('div');
+        row.className = `p-2.5 rounded-xl flex items-start justify-between gap-2 text-xs ${
+          isUsed ? 'opacity-45 bg-black/20' : 'bg-pine-900/60'
+        }`;
+        row.innerHTML = `
+          <div class="flex-1 break-keep">
+            <span class="font-bold ${isUsed ? 'text-slate-400' : 'text-amber-300'}">#${q.id}</span>
+            <span class="text-white ml-1">${q.question}</span>
+          </div>
+          <span class="shrink-0 px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-400/30">
+            ${ansStr}
+          </span>
+        `;
+        listEl.appendChild(row);
+      });
+    }
+
+    /**
+     * ============================================================================
+     * 7. 배경 눈 내리기 & 축하 폭죽 Canvas 애니메이션
+     * ============================================================================
+     */
+    function initSnowCanvas() {
+      const canvas = document.getElementById('snow-canvas');
+      const ctx = canvas.getContext('2d');
+      let width = (canvas.width = window.innerWidth);
+      let height = (canvas.height = window.innerHeight);
+
+      window.addEventListener('resize', () => {
+        width = canvas.width = window.innerWidth;
+        height = canvas.height = window.innerHeight;
+      });
+
+      const flakes = Array.from({ length: 65 }, () => ({
+        x: Math.random() * width,
+        y: Math.random() * height,
+        r: Math.random() * 3 + 1.2,
+        speedY: Math.random() * 1.1 + 0.4,
+        drift: Math.random() * 0.6 - 0.3,
+        opacity: Math.random() * 0.6 + 0.25
+      }));
+
+      function animateSnow() {
+        ctx.clearRect(0, 0, width, height);
+        flakes.forEach((f) => {
+          f.y += f.speedY;
+          f.x += f.drift + Math.sin(f.y * 0.01) * 0.3;
+
+          if (f.y > height) {
+            f.y = -5;
+            f.x = Math.random() * width;
+          }
+          if (f.x > width) f.x = 0;
+          if (f.x < 0) f.x = width;
+
+          ctx.beginPath();
+          ctx.arc(f.x, f.y, f.r, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(255, 255, 255, ${f.opacity})`;
+          ctx.fill();
+        });
+        requestAnimationFrame(animateSnow);
+      }
+
+      animateSnow();
+    }
+
+    function launchConfetti() {
+      const canvas = document.getElementById('confetti-canvas');
+      const ctx = canvas.getContext('2d');
+      const width = (canvas.width = window.innerWidth);
+      const height = (canvas.height = window.innerHeight);
+
+      const colors = ['#fbbf24', '#ef4444', '#10b981', '#ffffff', '#f472b6'];
+      const particles = Array.from({ length: 90 }, () => ({
+        x: width / 2,
+        y: height * 0.45,
+        vx: (Math.random() - 0.5) * 16,
+        vy: (Math.random() - 0.85) * 16,
+        size: Math.random() * 8 + 5,
+        color: colors[Math.floor(Math.random() * colors.length)],
+        rotation: Math.random() * 360,
+        rotSpeed: (Math.random() - 0.5) * 12,
+        life: 1
+      }));
+
+      function animateConfetti() {
+        ctx.clearRect(0, 0, width, height);
+        let aliveCount = 0;
+
+        particles.forEach((p) => {
+          if (p.life <= 0) return;
+          aliveCount++;
+          p.x += p.vx;
+          p.y += p.vy;
+          p.vy += 0.38; // 중력
+          p.rotation += p.rotSpeed;
+          p.life -= 0.014;
+
+          ctx.save();
+          ctx.translate(p.x, p.y);
+          ctx.rotate((p.rotation * Math.PI) / 180);
+          ctx.globalAlpha = Math.max(0, p.life);
+          ctx.fillStyle = p.color;
+          ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size * 0.6);
+          ctx.restore();
+        });
+
+        if (aliveCount > 0) {
+          requestAnimationFrame(animateConfetti);
+        } else {
+          ctx.clearRect(0, 0, width, height);
+        }
+      }
+
+      animateConfetti();
+    }
+
+    /**
+     * ============================================================================
+     * 8. 이벤트 리스너 바인딩 및 초기화
+     * ============================================================================
+     */
+    window.addEventListener('DOMContentLoaded', () => {
+      loadState();
+      renderDomeCapsules();
+      updateUIStatus();
+      initSnowCanvas();
+
+      // 뽑기 트리거 (메인 버튼, 레버 버튼, 스노우볼 클릭)
+      document.getElementById('draw-main-btn').addEventListener('click', startDraw);
+      document.getElementById('crank-btn').addEventListener('click', startDraw);
+      document.getElementById('globe-trigger').addEventListener('click', startDraw);
+      document.getElementById('globe-trigger').addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          startDraw();
+        }
+      });
+
+      // O/X 선택 버튼
+      document.querySelectorAll('.ox-choice-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          handleAnswerSubmit(btn.dataset.ox);
+        });
+      });
+
+      // 다른 문제 다시 뽑기 (패스)
+      document.getElementById('skip-question-btn').addEventListener('click', () => {
+        returnToGachaScreen();
+        setTimeout(() => startDraw(), 150);
+      });
+
+      // 다음 참가자 버튼
+      document.getElementById('next-participant-btn').addEventListener('click', returnToGachaScreen);
+
+      // 효과음 토글
+      document.getElementById('sound-toggle-btn').addEventListener('click', () => {
+        appState.soundEnabled = !appState.soundEnabled;
+        saveState();
+        updateUIStatus();
+        if (appState.soundEnabled) {
+          playSound('click');
+          showToast('🔊 효과음이 켜졌습니다.');
+        } else {
+          showToast('🔇 효과음이 꺼졌습니다.');
+        }
+      });
+
+      // 설정 모달 열기/닫기
+      document.getElementById('open-settings-btn').addEventListener('click', openSettingsModal);
+      document.getElementById('close-settings-btn').addEventListener('click', closeSettingsModal);
+      document.getElementById('settings-modal').addEventListener('click', (e) => {
+        if (e.target.id === 'settings-modal') closeSettingsModal();
+      });
+
+      // 출제 유형 필터 변경
+      document.querySelectorAll('.filter-option-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          playSound('click');
+          appState.filterMode = btn.dataset.filter;
+          saveState();
+          updateFilterButtonsUI();
+          updateUIStatus();
+        });
+      });
+
+      // 상품 문구 저장
+      document.getElementById('save-prizes-btn').addEventListener('click', () => {
+        playSound('click');
+        const raw = document.getElementById('prize-input').value;
+        const lines = raw
+          .split('\n')
+          .map((line) => line.trim())
+          .filter((line) => line.length > 0);
+
+        appState.prizes = lines.length > 0 ? lines : ['🎁 K-에코뷰티 스페셜 친환경 선물 증정!'];
+        saveState();
+
+        const fb = document.getElementById('prize-save-feedback');
+        fb.classList.remove('hidden');
+        setTimeout(() => fb.classList.add('hidden'), 2000);
+      });
+
+      // 전체 기록 초기화 (2단계 클릭 확인 - confirm() 미사용)
+      document.getElementById('reset-pool-btn').addEventListener('click', (e) => {
+        playSound('click');
+        const btn = e.currentTarget;
+        if (!resetConfirmPending) {
+          resetConfirmPending = true;
+          btn.textContent = '정말 초기화할까요? (한 번 더 클릭)';
+          btn.classList.remove('bg-red-600', 'text-white');
+          btn.classList.add('bg-amber-400', 'text-pine-950');
+          return;
+        }
+
+        appState.usedIds = [];
+        appState.playedCount = 0;
+        appState.correctCount = 0;
+        saveState();
+
+        resetConfirmPending = false;
+        btn.textContent = '전체 기록 초기화';
+        btn.classList.remove('bg-amber-400', 'text-pine-950');
+        btn.classList.add('bg-red-600', 'text-white');
+
+        updateUIStatus();
+        renderQuestionBankList();
+        showToast('✅ 모든 뽑기 기록과 통계가 초기화되었습니다!');
+      });
+    });
+  </script>
+</body>
+</html>
